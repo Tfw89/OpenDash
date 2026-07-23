@@ -98,6 +98,31 @@ At 160 LED/m the strip has one addressable pixel every 6.25 mm.
 
 ---
 
+## Troubleshooting
+
+**COM port trap.** PlatformIO auto-detected COM5, which was a Bluetooth
+virtual port, not the board. Fix: install the Silicon Labs CP210x Universal
+Windows Driver, confirm the real port in Device Manager under Ports
+(COM & LPT), then pin it in `platformio.ini`:
+
+```ini
+upload_port = COM7
+monitor_port = COM7
+```
+
+**Boot-mode dance.** This board does not auto-reset into download mode
+(`Wrong boot mode detected (0x13)`). Before every upload:
+
+1. Hold **IO0** (left button)
+2. Tap **EN** (right button), release EN
+3. Wait ~1s, release IO0
+4. Hit Upload
+
+Tap **EN** once after a successful flash to reset the board into running
+the program.
+
+---
+
 ## License
 
 MIT (see LICENSE).
