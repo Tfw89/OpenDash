@@ -68,6 +68,9 @@ constexpr float MAX_VALID_DT_SECONDS = 0.100f;
 constexpr uint8_t BASE_GREEN_R = 2;
 constexpr uint8_t BASE_GREEN_G = 24;
 constexpr uint8_t BASE_GREEN_B = 0;
+constexpr float BEAD_WIDTH   = 4.0f;
+constexpr float YELLOW_ANGLE = 25.0f;
+constexpr float RED_ANGLE    = 40.0f;
 
 CRGB leds[LED_COUNT];
 MPU6050 mpu(0x69); 
@@ -122,12 +125,39 @@ float radiansToDegrees(float radians)
     return radians * (180.0f / PI);
 }
 
-void showDimGreenBase()
+CRGB leanColor(float absLeanDeg)
 {
-    fill_solid(
-        leds,
-        LED_COUNT,
-        CRGB(BASE_GREEN_R, BASE_GREEN_G, BASE_GREEN_B));
+    if (absLeanDeg <= YELLOW_ANGLE) return CRGB(60, 255, 40);
+    if (absLeanDeg >= RED_ANGLE)    return CRGB(255, 40, 30);
+
+    float t = (absLeanDeg - YELLOW_ANGLE) / (RED_ANGLE - YELLOW_ANGLE);
+    uint8_t r = static_cast<uint8_t>(60 + (255 - 60) * t);
+    uint8_t g = static_cast<uint8_t>(255 + (40 - 255) * t);
+    return CRGB(r, g, 30);
+}
+
+void showComet(float leanDeg)
+{
+    fill_solid(leds, LED_COUNT, CRGB(BASE_GREEN_R, BASE_GREEN_G, BASE_GREEN_B));
+
+    float frac   = clampFloat(leanDeg / MAX_LEAN_DEG, -1.0f, 1.0f);
+    float center = (LED_COUNT - 1) / 2.0f;
+    float pos    = center + frac * center;
+
+    CRGB col = leanColor(fabsf(leanDeg));
+
+    for (int i = 0; i < LED_COUNT; ++i)
+    {
+        float d = fabsf(static_cast<float>(i) - pos);
+        if (d > BEAD_WIDTH) continue;
+
+        float intensity = 1.0f - (d / (BEAD_WIDTH + 0.6f));
+        if (intensity <= 0.0f) continue;
+
+        leds[i].r = static_cast<uint8_t>(BASE_GREEN_R + (col.r - BASE_GREEN_R) * intensity);
+        leds[i].g = static_cast<uint8_t>(BASE_GREEN_G + (col.g - BASE_GREEN_G) * intensity);
+        leds[i].b = static_cast<uint8_t>(BASE_GREEN_B + (col.b - BASE_GREEN_B) * intensity);
+    }
 
     FastLED.show();
 }
@@ -262,7 +292,7 @@ void setup()
     FastLED.setCorrection(TypicalLEDStrip);
     FastLED.clear(true);
 
-    showDimGreenBase();
+    showComet(0.0f);
 
     Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
     Wire.setClock(400000);
@@ -380,7 +410,7 @@ void loop()
     // Keep the entire strip visibly on with a dim Kawasaki-green base.
     // It is rewritten periodically here so later code cannot accidentally
     // leave stale LED data in the buffer.
-    showDimGreenBase();
+    showComet(filteredLeanDeg);
 
     const uint32_t currentMillis = millis();
 
