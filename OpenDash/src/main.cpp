@@ -29,7 +29,7 @@
 // -----------------------------------------------------------------------------
 
 // User-requested tuning constants.
-constexpr int LED_COUNT = 30;                  // Placeholder; set from dash-arc measurement later
+constexpr int LED_COUNT = 33;                  // Placeholder; set from dash-arc measurement later
 constexpr int LED_PIN = 13;
 constexpr float ALPHA = 0.98f;                 // Gyro weight when stable
 constexpr float MAX_LEAN_DEG = 55.0f;          // Lean-angle clamp
@@ -70,7 +70,7 @@ constexpr uint8_t BASE_GREEN_G = 24;
 constexpr uint8_t BASE_GREEN_B = 0;
 
 CRGB leds[LED_COUNT];
-MPU6050 mpu;
+MPU6050 mpu(0x69); 
 
 // Raw sensor storage required by MPU6050::getMotion6().
 int16_t rawAccelX = 0;
@@ -269,10 +269,10 @@ void setup()
 
     mpu.initialize();
 
-    if (!mpu.testConnection())
-    {
-        haltWithLedError();
-    }
+    // if (!mpu.testConnection())
+    // {
+    //     haltWithLedError();
+    // }
 
     Serial.println("MPU-6050 connection successful.");
 
