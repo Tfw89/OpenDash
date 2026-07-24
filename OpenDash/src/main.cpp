@@ -73,7 +73,7 @@ constexpr float YELLOW_ANGLE = 25.0f;
 constexpr float RED_ANGLE    = 40.0f;
 
 CRGB leds[LED_COUNT];
-MPU6050 mpu(0x69); 
+MPU6050 mpu; 
 
 // Raw sensor storage required by MPU6050::getMotion6().
 int16_t rawAccelX = 0;
